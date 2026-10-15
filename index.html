@@ -223,6 +223,21 @@ a.set.tile:hover,a.set.tile:focus-visible{transform:translateY(-8px) scale(1.035
       <div class="mbar"><i style="width:${pct}%"></i></div></div>`;
   });
   const CONF = {"report_url": "", "leaderboard_url": ""}, LB = CONF.leaderboard_url || '';
+  if (!LB) {
+    // ยังไม่ได้ต่อที่เก็บคะแนนกลาง: โชว์กระดานส่วนตัว (จากคะแนนในเครื่อง) + ป้ายกำลังเปิดใช้งาน
+    const ents = Object.entries(sc).filter(([k, v]) => v && v.total).map(([k, v]) => ({id: k, best: v.best, total: v.total, pct: v.best / v.total}));
+    const names = {}; document.querySelectorAll('a.set[data-id]').forEach(a => { names[a.dataset.id] = (a.querySelector('.t') || {}).textContent || a.dataset.id; });
+    const points = ents.reduce((s, e) => s + e.best, 0);
+    const top = ents.sort((a, b) => b.pct - a.pct || b.best - a.best).slice(0, 3);
+    const medal = ['🥇', '🥈', '🥉'];
+    const esc2 = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const sp = [[8,'8%'],[70,'14%'],[40,'88%'],[88,'70%'],[20,'60%']].map((x, k) => `<span class="spark" style="left:${x[0]}%;top:${x[1]};animation-delay:${k*.5}s">${k % 3 ? '✨' : '⭐'}</span>`).join('');
+    document.getElementById('lb').innerHTML = `<div class="hero-lb">${sp}<h2>🏆 กระดานอันดับ</h2>
+      <span class="tag">อันดับรวมของทุกคนกำลังเปิดใช้งานเร็วๆ นี้ • ตอนนี้ดูสถิติของคุณก่อน</span>
+      ${ents.length ? `<div class="pod" style="margin-top:8px">${top.map((e, k) => `<div class="pc p${k+1}"><span class="med">${medal[k]}</span><span class="pn" style="font-size:.8rem">${esc2(names[e.id] || e.id)}</span><span class="pp">${e.best}/${e.total}</span></div>`).join('')}</div>
+      <p class="me">⭐ คะแนนสะสมของคุณ <b>${points}</b> คะแนน จาก ${ents.length} ชุด</p>`
+      : `<p class="empty-lb">ทำข้อสอบชุดแรกแล้วคะแนนของคุณจะมาขึ้นที่นี่ 🔥</p>`}</div>`;
+  }
   if (LB) {
     let pid = ''; try { pid = localStorage.getItem('krupat_pid') || ''; } catch (e) {}
     const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));

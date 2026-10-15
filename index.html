@@ -114,6 +114,7 @@ img.logo{border-radius:50%;border:5px solid transparent;aspect-ratio:1/1;width:a
   background:linear-gradient(135deg,rgba(11,31,75,.05),rgba(201,149,28,.10))}
 .mst{font-size:.8rem;font-weight:700;letter-spacing:.3px;color:var(--navy);margin-bottom:4px}
 .mrow{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.88rem;color:var(--mute)}
+.mystat.empty{opacity:.75}
 .mrow b{color:var(--ink)}
 .mbar{height:6px;border-radius:99px;background:var(--line);margin-top:8px;overflow:hidden}
 .mbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#c98a00,#ffd740)}
@@ -216,7 +217,8 @@ a.set.tile:hover,a.set.tile:focus-visible{transform:translateY(-8px) scale(1.035
   document.getElementById('bookn').textContent = n ? `ตอนนี้มี ${n} ข้อที่ควรทบทวน` : 'ยังไม่มีข้อที่ผิด (ทำข้อสอบแล้วข้อที่พลาดจะมารวมที่นี่)';
   const sc = rd('krupat_scores_v1');
   document.querySelectorAll('a.set[data-id]').forEach(a => {
-    const s = sc[a.dataset.id]; if (!s) return;
+    const s = sc[a.dataset.id];
+    if (!s) { a.querySelector('.best').innerHTML = `<div class="mystat empty"><div class="mst">📊 สถิติส่วนตัว</div><div class="mrow"><span>ยังไม่เคยทำชุดนี้ — ทำจบแล้วคะแนนจะมาขึ้นที่นี่</span></div></div>`; return; }
     const pct = Math.round(s.best / s.total * 100);
     a.querySelector('.best').innerHTML = `<div class="mystat"><div class="mst">📊 สถิติส่วนตัว</div>
       <div class="mrow"><span>🔁 ทำแล้ว <b>${s.tries}</b> ครั้ง</span><span>🕑 ล่าสุด <b>${s.last}/${s.total}</b></span><span>🏅 ดีที่สุด <b>${s.best}/${s.total}</b></span></div>

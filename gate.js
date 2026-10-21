@@ -21,9 +21,25 @@
     if (URL) return fetch(URL + '?action=login&code=' + encodeURIComponent(code) + '&device=' + encodeURIComponent(dev()) + (oldpid() ? '&oldpid=' + encodeURIComponent(oldpid()) : '') + (needAdopt() ? '&adopt=1' : '')).then(function (r) { return r.json(); });
     return sha(SALT + code).then(function (h) { for (var i = 0; i < HASHES.length; i++) if (HASHES[i].h === h) return { ok: true, guest: !!HASHES[i].g }; return { ok: false, reason: 'invalid' }; });
   }
+  function logoutBtn(code) {   // ปุ่มเล็กมุมขวาล่างทุกหน้า: กด 2 ครั้งเพื่อยืนยัน -> คืนโควตาเครื่องที่เซิร์ฟเวอร์ + ล้างรหัสที่จำไว้ในเครื่องนี้
+    function add() {
+      if (!document.body || document.getElementById('kqlogout')) return;
+      var b = document.createElement('button'); b.id = 'kqlogout'; b.type = 'button'; b.textContent = 'ออกจากระบบ';
+      b.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:9990;font:600 12px Sarabun,system-ui,sans-serif;padding:6px 12px;border-radius:999px;border:1px solid rgba(120,120,120,.5);background:rgba(20,20,30,.78);color:#fff;opacity:.75;cursor:pointer';
+      var armed = false, t = null;
+      b.onclick = function () {
+        if (!armed) { armed = true; b.textContent = 'กดอีกครั้งเพื่อออกจากระบบ'; b.style.background = '#c4155f'; b.style.opacity = '1'; t = setTimeout(function () { armed = false; b.textContent = 'ออกจากระบบ'; b.style.background = 'rgba(20,20,30,.78)'; b.style.opacity = '.75'; }, 3500); return; }
+        clearTimeout(t); b.disabled = true; b.textContent = 'กำลังออกจากระบบ...';
+        var done = function () { try { ['krupat_gate_v2', 'krupat_pid', 'krupat_name', 'kq_claimed'].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} location.reload(); };
+        if (URL) fetch(URL + '?action=logout&code=' + encodeURIComponent(code) + '&device=' + encodeURIComponent(dev())).then(done, done); else done();
+      };
+      document.body.appendChild(b);
+    }
+    if (document.body) add(); else document.addEventListener('DOMContentLoaded', add);
+  }
   var s = saved();
   if (s) {
-    window.KQ_GUEST = !!s.g; banner();
+    window.KQ_GUEST = !!s.g; banner(); logoutBtn(s.c);
     check(s.c).then(function (r) { adopt(r); if (r && r.ok === false && /invalid|revoked|limit/.test(r.reason || '')) { try { localStorage.removeItem(KEY); } catch (e) {} location.reload(); } }).catch(function () {});
     return;
   }
@@ -45,7 +61,7 @@
     var inp = ov.querySelector('#kqcode'), msg = ov.querySelector('#kqmsg'), btn = ov.querySelector('#kqgo');
     function finishLogin(c, r) {
       try { localStorage.setItem(KEY, JSON.stringify({ c: c, g: r.guest ? 1 : 0, t: Date.now() })); } catch (e) {}
-      adopt(r); window.KQ_GUEST = !!r.guest; ov.remove(); document.documentElement.style.overflow = ''; banner();
+      adopt(r); window.KQ_GUEST = !!r.guest; ov.remove(); document.documentElement.style.overflow = ''; banner(); logoutBtn(c);
       window.dispatchEvent(new Event('kq-unlocked'));
     }
     try { var kc = localStorage.getItem('kq_claimed'); if (kc) inp.value = kc; } catch (e) {}   // รหัสที่เพิ่งรับจากสลิป (กันปิดหน้าก่อนจด)

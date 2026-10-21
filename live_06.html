@@ -25,6 +25,16 @@ h1{font-size:1.5rem;margin:0 0 4px}
 h1{color:var(--navy)}
 .cover{text-align:center}
 .coverimg{display:block;margin:0 auto 12px;max-height:340px;max-width:100%;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.28)}
+.nf{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:1px 6px;max-width:100%;padding:2px 10px;border-radius:12px;border:1.5px solid var(--c);background:linear-gradient(135deg,color-mix(in srgb,var(--c) 22%,transparent),color-mix(in srgb,var(--c) 5%,transparent));line-height:1.25;vertical-align:middle}
+.nf i{font-style:normal;font-size:.74em;font-weight:700;letter-spacing:.2px;color:var(--cd)}
+.nf .n2{font-size:1.1em}
+.pc .nf{flex-direction:column;gap:0;padding:3px 8px}
+.nf.c2{box-shadow:0 0 8px color-mix(in srgb,var(--c) 45%,transparent)}
+.nf.c3{box-shadow:0 0 12px color-mix(in srgb,var(--c) 60%,transparent);animation:nfg 2.4s ease-in-out infinite}
+@keyframes nfg{50%{box-shadow:0 0 18px color-mix(in srgb,var(--c) 90%,transparent)}}
+@media (prefers-color-scheme:dark){.nf i{color:var(--c)}}
+@media (prefers-reduced-motion:reduce){.nf.c3{animation:none}}
+.newt{display:block;margin-top:6px}
 .lbtop{font-size:.85rem;color:var(--mute);margin:0 0 8px}
 .lbrow{display:flex;gap:8px;margin:8px 0}
 .lbrow input{flex:1;font:inherit;padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);min-width:0}
@@ -107,6 +117,10 @@ const duo = () => `<div class="duo"><div class="lg">${pic('kru_pat_logo','logo')
 const app = document.getElementById('app');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const BOOK_KEY = 'krupat_wrong_v1', SCORE_KEY = 'krupat_scores_v1';
+const TC = ['#94a3b8', '#34d399', '#c4a8ff', '#ffd740'], TD = ['#475569', '#047857', '#6d28d9', '#a16207'];
+const nf = (name, t) => { const a = t && t[0]; if (!a) return `<b>${esc(name)}</b>`; return `<span class="nf c${a.c}" style="--c:${TC[a.c]};--cd:${TD[a.c]}"><b>${esc(name)}</b><i>${a.e} ${esc(a.n)}${t[1] ? ` <span class="n2" title="${esc(t[1].n)}">${t[1].e}</span>` : ''}</i></span>`; };
+const tchip = x => `<span class="nf c${x.c}" style="--c:${TC[x.c]};--cd:${TD[x.c]}"><i>${x.e} ${esc(x.n)}</i></span>`;
+const TKEY = 'krupat_titles_v1';   // ฉายาที่เคยเห็นแล้ว (ไว้ขึ้น "ได้ฉายาใหม่!")
 const rd = k => { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch (e) { return {}; } };
 const wr = (k, v) => { if (window.KQ_GUEST) return; try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
@@ -141,7 +155,7 @@ function start(){
     <p class="kbd">⌨️ กด <b>Enter</b> เพื่อเริ่ม • ตอบด้วยปุ่ม <b>1 2 3 4</b> (= ก ข ค ง)</p></div>`;
   document.getElementById('go').onclick = show;
   if (LB && !DATA.review && !window.KQ_GUEST) lbGet().then(d => { const s = d && d.sets && d.sets[DATA.id]; const el = document.getElementById('lbtop');
-    if (s && el) el.innerHTML = `👑 คะแนนสูงสุดชุดนี้: <b>${esc(s.name)}</b> ${s.score}/${s.total}`; });
+    if (s && el) el.innerHTML = `👑 คะแนนสูงสุดชุดนี้: ${nf(s.name, s.t)} ${s.score}/${s.total}`; });
 }
 
 function show(){
@@ -244,6 +258,12 @@ function finish(){
         .then(() => new Promise(r => setTimeout(r, 1200))).then(() => lbGet(DATA.id)).then(d => {
           const m = d && d.me, el = document.getElementById('lbmsg');
           el.innerHTML = m && m.setRank ? `✅ บันทึกแล้ว! อันดับในชุดนี้ <b>#${m.setRank}</b> จาก ${m.setPlayers} คน • อันดับรวม <b>#${m.overallRank}</b> (${m.points} คะแนนรวม)` : '✅ ส่งคะแนนแล้ว';
+          if (m && m.titles && m.titles.length) {   // ฉายา: โชว์ทั้งหมดที่ได้ + แจ้งอันที่ได้ใหม่
+            let seen = []; try { seen = JSON.parse(localStorage.getItem(TKEY)) || []; } catch (e) {}
+            const fresh = m.titles.filter(x => seen.indexOf(x.n) < 0);
+            try { localStorage.setItem(TKEY, JSON.stringify(m.titles.map(x => x.n))); } catch (e) {}
+            el.innerHTML += `<span class="newt">${fresh.length ? '🎉 ได้ฉายาใหม่! ' + fresh.map(tchip).join(' ') + '<br>' : ''}🏷️ ฉายาของคุณ: ${m.titles.map(tchip).join(' ')}</span>`;
+          }
         }).catch(() => { document.getElementById('lbmsg').textContent = 'ส่งไม่สำเร็จ ลองใหม่อีกครั้ง'; sb.disabled = false; });
     };
     sb.onclick = send;

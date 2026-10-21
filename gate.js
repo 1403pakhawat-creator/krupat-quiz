@@ -37,7 +37,8 @@
     '<button id="kqgo" style="margin-top:12px;width:100%;font:inherit;font-weight:700;font-size:1.1rem;padding:12px;border:0;border-radius:12px;background:#e91e78;color:#fff;cursor:pointer">เข้าสู่ระบบ</button>' +
     '<p id="kqmsg" style="min-height:1.4em;margin:10px 0 0;color:#ff8a7a;font-size:.9rem"></p>' +
     '<p style="margin:6px 0 0;color:#a89350;font-size:.8rem">ลืมรหัส? ติดต่อทีมงานครูพัดเพื่อขอรหัสใหม่</p>' +
-    ((URL && (false || /[?&]slip=1/.test(location.search))) ? '<p style="margin:12px 0 0"><a id="kqclaim" href="#" style="color:#ffd740;font-size:.95rem;font-weight:700">ยังไม่มีรหัส? ยืนยันสลิปเพื่อรับรหัสทันที</a></p>' : '') + '</div>';
+    ((URL && (false || /[?&]slip=1/.test(location.search))) ? '<p style="margin:12px 0 0"><a id="kqclaim" href="#" style="color:#ffd740;font-size:.95rem;font-weight:700">ยังไม่มีรหัส? ยืนยันสลิปเพื่อรับรหัสทันที</a></p>' +
+      '<p style="margin:8px 0 0"><a id="kqforgot" href="#" style="color:#a89350;font-size:.85rem">ลืมรหัส? กู้รหัสด้วยสลิปใบเดิม</a></p>' : '') + '</div>';
   var mounted = false;
   function mount() {
     if (mounted || !document.body) return; mounted = true; document.body.appendChild(ov);
@@ -66,17 +67,19 @@
     setTimeout(function () { inp.focus(); }, 50);
     var cl = ov.querySelector('#kqclaim'), card = ov.firstChild, home = card.innerHTML;
     if (cl) cl.onclick = function (e) { e.preventDefault(); claimView(); };
+    var fg = ov.querySelector('#kqforgot'); if (fg) fg.onclick = function (e) { e.preventDefault(); claimView('recover'); };
 
     // ---- ขอรหัสด้วยสลิป: กรอกอีเมล + แนบสลิป -> ระบบตรวจ -> ส่งรหัสเข้าอีเมล ----
-    function claimView() {
+    function claimView(mode) {
+      var rc = mode === 'recover';
       var fs = 'width:100%;box-sizing:border-box;font:inherit;font-size:1rem;padding:11px;border-radius:12px;border:2px solid #7a5a08;background:#fff;color:#111;margin-top:8px';
-      card.innerHTML = '<div style="font-size:38px">🧾</div><h2 style="margin:6px 0 4px;color:#ffd740;font-size:1.3rem">รับรหัสด้วยสลิป</h2>' +
-        '<p style="margin:0 0 8px;color:#d9c27a;font-size:.9rem">กรอกชื่อจริงกับอีเมล แล้วแนบสลิปการโอน ระบบตรวจสอบและแสดงรหัสให้ทันที (ไม่ต้องรออีเมล)</p>' +
-        '<input id="kqnm" autocomplete="name" placeholder="ชื่อจริง-นามสกุล" style="' + fs + '">' +
-        '<input id="kqem" type="email" autocomplete="email" autocapitalize="none" placeholder="อีเมล (ไว้ติดต่อ/กู้รหัส)" style="' + fs + '">' +
+      card.innerHTML = '<div style="font-size:38px">🧾</div><h2 style="margin:6px 0 4px;color:#ffd740;font-size:1.3rem">' + (rc ? 'กู้รหัสด้วยสลิปเดิม' : 'รับรหัสด้วยสลิป') + '</h2>' +
+        '<p style="margin:0 0 8px;color:#d9c27a;font-size:.9rem">' + (rc ? 'กรอกอีเมลที่เคยใช้รับรหัส แล้วแนบสลิปใบเดิมที่เคยใช้ ระบบจะแสดงรหัสเดิมของคุณให้' : 'กรอกชื่อจริงกับอีเมล แล้วแนบสลิปการโอน ระบบตรวจสอบและแสดงรหัสให้ทันที (ไม่ต้องรออีเมล)') + '</p>' +
+        (rc ? '<input id="kqnm" type="hidden" value="">' : '<input id="kqnm" autocomplete="name" placeholder="ชื่อจริง-นามสกุล" style="' + fs + '">') +
+        '<input id="kqem" type="email" autocomplete="email" autocapitalize="none" placeholder="' + (rc ? 'อีเมลที่เคยใช้รับรหัส' : 'อีเมล (ไว้ติดต่อ/กู้รหัส)') + '" style="' + fs + '">' +
         '<label style="display:block;margin-top:8px;color:#d9c27a;font-size:.85rem;text-align:left">รูปสลิปการโอน</label>' +
         '<input id="kqsl" type="file" accept="image/*" style="width:100%;color:#fff6d6;font-size:.9rem">' +
-        '<button id="kqsend" style="margin-top:12px;width:100%;font:inherit;font-weight:700;font-size:1.05rem;padding:12px;border:0;border-radius:12px;background:#e91e78;color:#fff;cursor:pointer">ตรวจสลิปและรับรหัส</button>' +
+        '<button id="kqsend" style="margin-top:12px;width:100%;font:inherit;font-weight:700;font-size:1.05rem;padding:12px;border:0;border-radius:12px;background:#e91e78;color:#fff;cursor:pointer">' + (rc ? 'กู้รหัสของฉัน' : 'ตรวจสลิปและรับรหัส') + '</button>' +
         '<button id="kqrev" style="display:none;margin-top:8px;width:100%;font:inherit;font-weight:700;padding:11px;border:2px solid #ffd740;border-radius:12px;background:transparent;color:#ffd740;cursor:pointer">ส่งให้ทีมงานตรวจสลิป</button>' +
         '<p id="kqcm" style="min-height:1.4em;margin:10px 0 0;color:#ff8a7a;font-size:.9rem;white-space:pre-line"></p>' +
         '<p style="margin:4px 0 0"><a id="kqback" href="#" style="color:#a89350;font-size:.85rem">← กลับไปกรอกรหัส</a></p>';
@@ -111,12 +114,12 @@
         sd.disabled = false; rv.disabled = false;
         say(r.message || 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง', !!r.ok);
         rv.style.display = r.canReview ? 'block' : 'none';
-        if (r.ok && r.status === 'issued' && r.code) { codeView(r.code, r.mailed); return; }
+        if (r.ok && (r.status === 'issued' || r.status === 'recovered') && r.code) { codeView(r.code, r.mailed, r.status === 'recovered'); return; }
         if (r.ok && (r.status === 'issued' || r.status === 'resent')) { sd.style.display = 'none'; }
       }
-      function codeView(code, mailed) {
+      function codeView(code, mailed, recovered) {
         try { localStorage.setItem('kq_claimed', code); } catch (e) {}
-        card.innerHTML = '<div style="font-size:42px">🎉</div><h2 style="margin:6px 0 4px;color:#ffd740;font-size:1.3rem">ตรวจสลิปผ่านแล้ว!</h2>' +
+        card.innerHTML = '<div style="font-size:42px">🎉</div><h2 style="margin:6px 0 4px;color:#ffd740;font-size:1.3rem">' + (recovered ? 'พบรหัสของคุณแล้ว!' : 'ตรวจสลิปผ่านแล้ว!') + '</h2>' +
           '<p style="margin:0 0 8px;color:#d9c27a;font-size:.9rem">รหัสเข้าใช้งานของคุณ (จดหรือกดคัดลอกเก็บไว้นะคะ)</p>' +
           '<div id="kqcode2" style="background:#fff;color:#111;border-radius:12px;padding:12px;font-size:1.5rem;font-weight:800;letter-spacing:2px;border:3px solid #ffd740;user-select:all">' + code + '</div>' +
           '<button id="kqcp" style="margin-top:10px;width:100%;font:inherit;font-weight:700;padding:11px;border:2px solid #ffd740;border-radius:12px;background:transparent;color:#ffd740;cursor:pointer">📋 คัดลอกรหัส</button>' +
@@ -135,11 +138,11 @@
       }
       function fail() { sd.disabled = false; rv.disabled = false; say('เชื่อมต่อไม่ได้ กรุณาตรวจอินเทอร์เน็ตแล้วลองใหม่', false); }
       sd.onclick = function () {
-        if (nm.value.replace(/\s+/g, '').length < 3) { say('กรอกชื่อจริง (ชื่อ-นามสกุล) ก่อนนะคะ', false); return; }
+        if (!rc && nm.value.replace(/\s+/g, '').length < 3) { say('กรอกชื่อจริง (ชื่อ-นามสกุล) ก่อนนะคะ', false); return; }
         if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em.value.trim())) { say('กรอกอีเมลให้ถูกต้องก่อนนะคะ', false); return; }
         if (!fl.files[0]) { say('แนบรูปสลิปก่อนนะคะ', false); return; }
         sd.disabled = true; say('กำลังตรวจสลิป...', true);
-        shrink(fl.files[0]).then(function (d) { img = d; return post('claim'); }).then(after).catch(fail);
+        shrink(fl.files[0]).then(function (d) { img = d; return post(rc ? 'recover' : 'claim'); }).then(after).catch(fail);
       };
       rv.onclick = function () {
         if (!img) { say('แนบสลิปก่อนนะคะ', false); return; }

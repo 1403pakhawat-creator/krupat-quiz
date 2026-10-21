@@ -37,7 +37,7 @@
     '<button id="kqgo" style="margin-top:12px;width:100%;font:inherit;font-weight:700;font-size:1.1rem;padding:12px;border:0;border-radius:12px;background:#e91e78;color:#fff;cursor:pointer">เข้าสู่ระบบ</button>' +
     '<p id="kqmsg" style="min-height:1.4em;margin:10px 0 0;color:#ff8a7a;font-size:.9rem"></p>' +
     '<p style="margin:6px 0 0;color:#a89350;font-size:.8rem">ลืมรหัส? ติดต่อทีมงานครูพัดเพื่อขอรหัสใหม่</p>' +
-    ((URL && (false || /[?&]slip=1/.test(location.search))) ? '<p style="margin:12px 0 0"><a id="kqclaim" href="#" style="color:#ffd740;font-size:.95rem;font-weight:700">ยังไม่มีรหัส? ยืนยันสลิปเพื่อรับรหัสทันที</a></p>' +
+    ((URL && (true || /[?&]slip=1/.test(location.search))) ? '<p style="margin:12px 0 0"><a id="kqclaim" href="#" style="color:#ffd740;font-size:.95rem;font-weight:700">ยังไม่มีรหัส? ยืนยันสลิปเพื่อรับรหัสทันที</a></p>' +
       '<p style="margin:8px 0 0"><a id="kqforgot" href="#" style="color:#a89350;font-size:.85rem">ลืมรหัส? กู้รหัสด้วยสลิปใบเดิม</a></p>' : '') + '</div>';
   var mounted = false;
   function mount() {

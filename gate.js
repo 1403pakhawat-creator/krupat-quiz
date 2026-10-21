@@ -3,19 +3,28 @@
    โหมดสำรอง (ไม่มี URL): ตรวจแฮชในไฟล์นี้ (ไม่จำกัดเครื่อง)
    จำเครื่อง 30 วัน และตรวจซ้ำเบื้องหลังทุกครั้งที่เปิด (ถ้ารหัสถูกปิด/เครื่องเกิน จะเด้งกลับหน้ากรอกรหัส) */
 (function () {
-  var URL = 'https://script.google.com/macros/s/AKfycbz_QT--kzwZcbV31BQYO49iVYCs6553_G1uF26B0IcObWyzZrKYD-Y3A-OXXocb5JpGuQ/exec', SALT = 'krupat-2569|', HASHES = [], DAYS = 30, KEY = 'krupat_gate_v2', DKEY = 'krupat_dev_v1';
+  var URL = 'https://script.google.com/macros/s/AKfycbw_yFLXphu5ZPb6etyasx_vFBdmidqgque_nGFNe98xeO4m09-6CaDbBepDH2BPYAlCLg/exec', SALT = 'krupat-2569|', HASHES = [], DAYS = 30, KEY = 'krupat_gate_v2', DKEY = 'krupat_dev_v1';
   window.KQ_GUEST = false;
   function dev() { try { var d = localStorage.getItem(DKEY); if (!d) { d = 'd' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem(DKEY, d); } return d; } catch (e) { return 'tmp' + Math.random().toString(36).slice(2); } }
   function saved() { try { var v = JSON.parse(localStorage.getItem(KEY)); if (v && v.t && Date.now() - v.t < DAYS * 864e5) return v; } catch (e) {} return null; }
   function sha(s) { return crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)).then(function (d) { return Array.prototype.map.call(new Uint8Array(d), function (b) { return ('0' + b.toString(16)).slice(-2); }).join(''); }); }
-  function check(code) {   // -> Promise<{ok,guest,reason,max}>
-    if (URL) return fetch(URL + '?action=login&code=' + encodeURIComponent(code) + '&device=' + encodeURIComponent(dev())).then(function (r) { return r.json(); });
+  function oldpid() { try { var p = localStorage.getItem('krupat_pid') || ''; return /^p[a-z0-9]{6,40}$/.test(p) ? p : ''; } catch (e) { return ''; } }
+  function needAdopt() { try { return !/^c[0-9a-f]{20}$/.test(localStorage.getItem('krupat_pid') || ''); } catch (e) { return false; } }
+  function adopt(r) {   // รหัสส่วนตัว: ใช้รหัสผู้เล่นที่เซิร์ฟเวอร์สร้างจากรหัสสมาชิก (คะแนน/ชื่อตามตัวไปทุกเครื่อง) ส่วนรหัสสำรองไม่แตะ
+    try {
+      if (!r || !r.ok || r.guest || !/^c[0-9a-f]{20}$/.test(r.pid || '')) return;
+      localStorage.setItem('krupat_pid', r.pid);
+      if (r.nick && !localStorage.getItem('krupat_name')) localStorage.setItem('krupat_name', String(r.nick).slice(0, 20));
+    } catch (e) {}
+  }
+  function check(code) {   // -> Promise<{ok,guest,reason,max,pid,nick}>
+    if (URL) return fetch(URL + '?action=login&code=' + encodeURIComponent(code) + '&device=' + encodeURIComponent(dev()) + (oldpid() ? '&oldpid=' + encodeURIComponent(oldpid()) : '') + (needAdopt() ? '&adopt=1' : '')).then(function (r) { return r.json(); });
     return sha(SALT + code).then(function (h) { for (var i = 0; i < HASHES.length; i++) if (HASHES[i].h === h) return { ok: true, guest: !!HASHES[i].g }; return { ok: false, reason: 'invalid' }; });
   }
   var s = saved();
   if (s) {
     window.KQ_GUEST = !!s.g; banner();
-    check(s.c).then(function (r) { if (r && r.ok === false && /invalid|revoked|limit/.test(r.reason || '')) { try { localStorage.removeItem(KEY); } catch (e) {} location.reload(); } }).catch(function () {});
+    check(s.c).then(function (r) { adopt(r); if (r && r.ok === false && /invalid|revoked|limit/.test(r.reason || '')) { try { localStorage.removeItem(KEY); } catch (e) {} location.reload(); } }).catch(function () {});
     return;
   }
   document.documentElement.style.overflow = 'hidden';
@@ -44,7 +53,7 @@
           return;
         }
         try { localStorage.setItem(KEY, JSON.stringify({ c: c, g: r.guest ? 1 : 0, t: Date.now() })); } catch (e) {}
-        window.KQ_GUEST = !!r.guest; ov.remove(); document.documentElement.style.overflow = ''; banner();
+        adopt(r); window.KQ_GUEST = !!r.guest; ov.remove(); document.documentElement.style.overflow = ''; banner();
         window.dispatchEvent(new Event('kq-unlocked'));
       }).catch(function () { btn.disabled = false; msg.textContent = 'เชื่อมต่อไม่ได้ กรุณาตรวจอินเทอร์เน็ตแล้วลองใหม่'; });
     }

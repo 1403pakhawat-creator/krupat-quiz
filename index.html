@@ -296,7 +296,7 @@ header{position:relative}
       <div class="mrow"><span>🔁 ทำแล้ว <b>${s.tries}</b> ครั้ง</span><span>🕑 ล่าสุด <b>${s.last}/${s.total}</b></span><span>🏅 ดีที่สุด <b>${s.best}/${s.total}</b></span></div>
       <div class="mbar"><i style="width:${pct}%"></i></div></div>`;
   });
-  const CONF = {"report_url": "", "leaderboard_url": "https://script.google.com/macros/s/AKfycbz_QT--kzwZcbV31BQYO49iVYCs6553_G1uF26B0IcObWyzZrKYD-Y3A-OXXocb5JpGuQ/exec"}, LB = CONF.leaderboard_url || '';
+  const CONF = {"report_url": "", "leaderboard_url": "https://script.google.com/macros/s/AKfycbw_yFLXphu5ZPb6etyasx_vFBdmidqgque_nGFNe98xeO4m09-6CaDbBepDH2BPYAlCLg/exec", "line_channel_id": ""}, LB = CONF.leaderboard_url || '';
   if (!LB) {
     // ยังไม่ได้ต่อที่เก็บคะแนนกลาง: โชว์กระดานส่วนตัว (จากคะแนนในเครื่อง) + ป้ายกำลังเปิดใช้งาน
     const ents = Object.entries(sc).filter(([k, v]) => v && v.total).map(([k, v]) => ({id: k, best: v.best, total: v.total, pct: v.best / v.total}));

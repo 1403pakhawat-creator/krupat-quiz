@@ -54,7 +54,7 @@
     '<p id="kqmsg" style="min-height:1.4em;margin:10px 0 0;color:#ff8a7a;font-size:.9rem"></p>' +
     '<p style="margin:6px 0 0;color:#a89350;font-size:.8rem">ลืมรหัส? ติดต่อทีมงานครูพัดเพื่อขอรหัสใหม่</p>' +
     ((URL && (true || /[?&]slip=1/.test(location.search))) ? '<p style="margin:12px 0 0"><a id="kqclaim" href="#" style="color:#ffd740;font-size:.95rem;font-weight:700">ยังไม่มีรหัส? ยืนยันสลิปเพื่อรับรหัสทันที</a></p>' +
-      '<p style="margin:8px 0 0"><a id="kqforgot" href="#" style="color:#a89350;font-size:.85rem">ลืมรหัส? กู้รหัสด้วยสลิปใบเดิม</a></p>' : '') + '</div>';
+      '<p style="margin:8px 0 0"><a id="kqforgot" href="#" style="color:#a89350;font-size:.85rem">ลืมรหัส? กู้รหัสด้วยอีเมล</a></p>' : '') + '</div>';
   var mounted = false;
   function mount() {
     if (mounted || !document.body) return; mounted = true; document.body.appendChild(ov);
@@ -89,12 +89,12 @@
     function claimView(mode) {
       var rc = mode === 'recover';
       var fs = 'width:100%;box-sizing:border-box;font:inherit;font-size:1rem;padding:11px;border-radius:12px;border:2px solid #7a5a08;background:#fff;color:#111;margin-top:8px';
-      card.innerHTML = '<div style="font-size:38px">🧾</div><h2 style="margin:6px 0 4px;color:#ffd740;font-size:1.3rem">' + (rc ? 'กู้รหัสด้วยสลิปเดิม' : 'รับรหัสด้วยสลิป') + '</h2>' +
-        '<p style="margin:0 0 8px;color:#d9c27a;font-size:.9rem">' + (rc ? 'กรอกอีเมลที่เคยใช้รับรหัส แล้วแนบสลิปใบเดิมที่เคยใช้ ระบบจะแสดงรหัสเดิมของคุณให้' : 'กรอกชื่อจริงกับอีเมล แล้วแนบสลิปการโอน ระบบตรวจสอบและแสดงรหัสให้ทันที (ไม่ต้องรออีเมล)') + '</p>' +
+      card.innerHTML = '<div style="font-size:38px">🧾</div><h2 style="margin:6px 0 4px;color:#ffd740;font-size:1.3rem">' + (rc ? 'กู้รหัสด้วยอีเมล' : 'รับรหัสด้วยสลิป') + '</h2>' +
+        '<p style="margin:0 0 8px;color:#d9c27a;font-size:.9rem">' + (rc ? 'กรอกอีเมลที่เคยใช้รับรหัส ระบบจะแสดงรหัสเดิมของคุณให้ทันที (ไม่ต้องแนบสลิป)' : 'กรอกชื่อจริงกับอีเมล แล้วแนบสลิปการโอน ระบบตรวจสอบและแสดงรหัสให้ทันที (ไม่ต้องรออีเมล)') + '</p>' +
         (rc ? '<input id="kqnm" type="hidden" value="">' : '<input id="kqnm" autocomplete="name" placeholder="ชื่อจริง-นามสกุล" style="' + fs + '">') +
         '<input id="kqem" type="email" autocomplete="email" autocapitalize="none" placeholder="' + (rc ? 'อีเมลที่เคยใช้รับรหัส' : 'อีเมล (ไว้ติดต่อ/กู้รหัส)') + '" style="' + fs + '">' +
-        '<label style="display:block;margin-top:8px;color:#d9c27a;font-size:.85rem;text-align:left">รูปสลิปการโอน</label>' +
-        '<input id="kqsl" type="file" accept="image/*" style="width:100%;color:#fff6d6;font-size:.9rem">' +
+        (rc ? '<input id="kqsl" type="hidden">' : '<label style="display:block;margin-top:8px;color:#d9c27a;font-size:.85rem;text-align:left">รูปสลิปการโอน</label>' +
+        '<input id="kqsl" type="file" accept="image/*" style="width:100%;color:#fff6d6;font-size:.9rem">') +
         '<button id="kqsend" style="margin-top:12px;width:100%;font:inherit;font-weight:700;font-size:1.05rem;padding:12px;border:0;border-radius:12px;background:#e91e78;color:#fff;cursor:pointer">' + (rc ? 'กู้รหัสของฉัน' : 'ตรวจสลิปและรับรหัส') + '</button>' +
         '<button id="kqrev" style="display:none;margin-top:8px;width:100%;font:inherit;font-weight:700;padding:11px;border:2px solid #ffd740;border-radius:12px;background:transparent;color:#ffd740;cursor:pointer">ส่งให้ทีมงานตรวจสลิป</button>' +
         '<p id="kqcm" style="min-height:1.4em;margin:10px 0 0;color:#ff8a7a;font-size:.9rem;white-space:pre-line"></p>' +
@@ -156,9 +156,10 @@
       sd.onclick = function () {
         if (!rc && nm.value.replace(/\s+/g, '').length < 3) { say('กรอกชื่อจริง (ชื่อ-นามสกุล) ก่อนนะคะ', false); return; }
         if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em.value.trim())) { say('กรอกอีเมลให้ถูกต้องก่อนนะคะ', false); return; }
-        if (!fl.files[0]) { say('แนบรูปสลิปก่อนนะคะ', false); return; }
-        sd.disabled = true; say('กำลังตรวจสลิป...', true);
-        shrink(fl.files[0]).then(function (d) { img = d; return post(rc ? 'recover' : 'claim'); }).then(after).catch(fail);
+        if (!rc && !fl.files[0]) { say('แนบรูปสลิปก่อนนะคะ', false); return; }
+        sd.disabled = true; say(rc ? 'กำลังค้นหารหัส...' : 'กำลังตรวจสลิป...', true);
+        if (rc) { post('recover').then(after).catch(fail); return; }
+        shrink(fl.files[0]).then(function (d) { img = d; return post('claim'); }).then(after).catch(fail);
       };
       rv.onclick = function () {
         if (!img) { say('แนบสลิปก่อนนะคะ', false); return; }
